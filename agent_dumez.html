@@ -1,0 +1,822 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AGENT DUMEZ // MISSION CRITIQUE</title>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --green: #00ff41;
+    --green-dim: #00c032;
+    --green-dark: #003f10;
+    --green-glow: rgba(0,255,65,0.4);
+    --black: #000000;
+    --dark: #050f05;
+    --red: #ff2222;
+    --red-glow: rgba(255,34,34,0.5);
+    --yellow: #ffe600;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--dark);
+    color: var(--green);
+    font-family: 'Share Tech Mono', monospace;
+    min-height: 100vh;
+    overflow-x: hidden;
+    cursor: default;
+  }
+
+  /* Scanlines overlay */
+  body::before {
+    content: '';
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 2px,
+      rgba(0,0,0,0.15) 2px,
+      rgba(0,0,0,0.15) 4px
+    );
+    pointer-events: none;
+    z-index: 9999;
+  }
+
+  /* CRT noise */
+  body::after {
+    content: '';
+    position: fixed;
+    top: -50%; left: -50%;
+    width: 200%; height: 200%;
+    background: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
+    pointer-events: none;
+    opacity: 0.04;
+    z-index: 9998;
+    animation: noise 0.5s steps(2) infinite;
+  }
+
+  @keyframes noise {
+    0% { transform: translate(0,0); }
+    25% { transform: translate(-2px, 1px); }
+    50% { transform: translate(1px, -1px); }
+    75% { transform: translate(-1px, 2px); }
+    100% { transform: translate(2px, -2px); }
+  }
+
+  .container {
+    max-width: 700px;
+    margin: 0 auto;
+    padding: 20px 16px 60px;
+  }
+
+  /* Header */
+  .header {
+    text-align: center;
+    padding: 30px 0 20px;
+    border-bottom: 2px solid var(--green-dark);
+    margin-bottom: 30px;
+  }
+
+  .header-top {
+    font-family: 'Press Start 2P', monospace;
+    font-size: clamp(7px, 2.5vw, 11px);
+    color: var(--green-dim);
+    letter-spacing: 4px;
+    margin-bottom: 12px;
+    animation: blink-text 3s infinite;
+  }
+
+  .header-title {
+    font-family: 'Press Start 2P', monospace;
+    font-size: clamp(14px, 5vw, 26px);
+    color: var(--green);
+    text-shadow: 0 0 20px var(--green-glow), 0 0 40px var(--green-glow);
+    line-height: 1.6;
+    margin-bottom: 10px;
+    animation: flicker 8s infinite;
+  }
+
+  .header-sub {
+    font-size: clamp(9px, 2.8vw, 13px);
+    color: var(--green-dim);
+    letter-spacing: 2px;
+  }
+
+  @keyframes flicker {
+    0%, 95%, 100% { opacity: 1; }
+    96% { opacity: 0.6; }
+    97% { opacity: 1; }
+    98% { opacity: 0.4; }
+    99% { opacity: 0.9; }
+  }
+
+  @keyframes blink-text {
+    0%, 49%, 51%, 100% { opacity: 1; }
+    50% { opacity: 0; }
+  }
+
+  /* Mission briefing */
+  .briefing {
+    background: rgba(0,255,65,0.04);
+    border: 1px solid var(--green-dark);
+    border-left: 4px solid var(--green);
+    padding: 20px;
+    margin-bottom: 30px;
+    font-size: clamp(11px, 3vw, 14px);
+    line-height: 1.9;
+    position: relative;
+  }
+
+  .briefing::before {
+    content: '// BRIEFING';
+    font-family: 'Press Start 2P', monospace;
+    font-size: 8px;
+    color: var(--green-dim);
+    position: absolute;
+    top: -10px;
+    left: 16px;
+    background: var(--dark);
+    padding: 0 6px;
+  }
+
+  .briefing p { margin-bottom: 10px; }
+  .briefing p:last-child { margin-bottom: 0; }
+
+  .agent-name {
+    color: var(--yellow);
+    font-family: 'Press Start 2P', monospace;
+    font-size: clamp(9px, 2.5vw, 12px);
+    text-shadow: 0 0 10px rgba(255,230,0,0.5);
+  }
+
+  /* BOMB */
+  .bomb-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-bottom: 40px;
+  }
+
+  .bomb-wrap {
+    position: relative;
+    width: min(300px, 85vw);
+  }
+
+  .bomb-body {
+    background: linear-gradient(135deg, #111 0%, #1a1a1a 50%, #0d0d0d 100%);
+    border: 3px solid #333;
+    border-radius: 16px;
+    padding: 24px 20px 20px;
+    box-shadow: 0 0 30px rgba(0,0,0,0.8), inset 0 1px 0 rgba(255,255,255,0.05);
+    position: relative;
+  }
+
+  /* Timer */
+  .timer-display {
+    background: #000;
+    border: 2px solid var(--red);
+    border-radius: 6px;
+    padding: 12px;
+    text-align: center;
+    margin-bottom: 20px;
+    box-shadow: 0 0 20px var(--red-glow), inset 0 0 10px rgba(255,0,0,0.1);
+  }
+
+  .timer-label {
+    font-family: 'Press Start 2P', monospace;
+    font-size: 8px;
+    color: #ff6666;
+    letter-spacing: 3px;
+    margin-bottom: 8px;
+    display: block;
+  }
+
+  .timer-digits {
+    font-family: 'Press Start 2P', monospace;
+    font-size: clamp(22px, 7vw, 36px);
+    color: var(--red);
+    text-shadow: 0 0 20px var(--red-glow);
+    letter-spacing: 4px;
+    animation: timer-pulse 1s steps(1) infinite;
+  }
+
+  .timer-digits.stopped {
+    color: var(--green);
+    text-shadow: 0 0 20px var(--green-glow);
+    animation: none;
+  }
+
+  @keyframes timer-pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.7; }
+  }
+
+  /* Wires */
+  .wires-section {
+    margin-bottom: 8px;
+  }
+
+  .wire-label {
+    font-family: 'Press Start 2P', monospace;
+    font-size: 7px;
+    color: #555;
+    letter-spacing: 2px;
+    margin-bottom: 12px;
+    text-align: center;
+  }
+
+  .wires {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  .wire-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .wire-track {
+    flex: 1;
+    height: 10px;
+    background: linear-gradient(90deg, #1a0505 0%, var(--wire-color) 40%, var(--wire-color) 60%, #1a0505 100%);
+    border-radius: 5px;
+    position: relative;
+    transition: all 0.3s;
+    box-shadow: 0 0 8px var(--wire-color);
+  }
+
+  .wire-track.cut {
+    background: linear-gradient(90deg, #1a0505 0%, var(--wire-color) 35%, transparent 35%, transparent 65%, var(--wire-color) 65%, #1a0505 100%);
+    box-shadow: none;
+    opacity: 0.5;
+  }
+
+  .wire-track::after {
+    content: '';
+    position: absolute;
+    top: 2px; left: 10%;
+    width: 80%; height: 3px;
+    background: rgba(255,255,255,0.15);
+    border-radius: 2px;
+  }
+
+  .wire-btn {
+    font-family: 'Press Start 2P', monospace;
+    font-size: 7px;
+    background: #1a1a1a;
+    border: 1px solid #444;
+    color: #888;
+    padding: 6px 10px;
+    border-radius: 4px;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all 0.2s;
+    min-width: 70px;
+    text-align: center;
+  }
+
+  .wire-btn:disabled {
+    opacity: 0.35;
+    cursor: not-allowed;
+  }
+
+  .wire-btn.ready {
+    border-color: var(--green);
+    color: var(--green);
+    box-shadow: 0 0 8px var(--green-glow);
+    animation: btn-pulse 1.5s ease-in-out infinite;
+  }
+
+  .wire-btn.cut-done {
+    border-color: #444;
+    color: #444;
+    background: #0a0a0a;
+    box-shadow: none;
+    animation: none;
+  }
+
+  @keyframes btn-pulse {
+    0%, 100% { box-shadow: 0 0 6px var(--green-glow); }
+    50% { box-shadow: 0 0 18px var(--green-glow), 0 0 30px rgba(0,255,65,0.2); }
+  }
+
+  /* Wire colors */
+  #wire1 .wire-track { --wire-color: #ff3333; }
+  #wire2 .wire-track { --wire-color: #3399ff; }
+  #wire3 .wire-track { --wire-color: #ffdd00; }
+
+  /* Progress indicators */
+  .progress-dots {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+    margin-top: 16px;
+  }
+
+  .dot {
+    width: 12px; height: 12px;
+    border-radius: 50%;
+    background: #222;
+    border: 2px solid #333;
+    transition: all 0.5s;
+  }
+
+  .dot.active {
+    background: var(--green);
+    border-color: var(--green);
+    box-shadow: 0 0 10px var(--green-glow);
+  }
+
+  /* Enigma section */
+  .enigma-section {
+    background: rgba(0,255,65,0.03);
+    border: 1px solid var(--green-dark);
+    border-radius: 4px;
+    padding: 24px 20px;
+    margin-bottom: 24px;
+    position: relative;
+    display: none;
+  }
+
+  .enigma-section.visible { display: block; }
+
+  .enigma-num {
+    font-family: 'Press Start 2P', monospace;
+    font-size: 9px;
+    color: var(--green-dim);
+    letter-spacing: 3px;
+    margin-bottom: 14px;
+  }
+
+  .enigma-text {
+    font-size: clamp(12px, 3.5vw, 16px);
+    line-height: 1.8;
+    color: #ccffcc;
+    margin-bottom: 20px;
+  }
+
+  .enigma-options {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .option-btn {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: clamp(12px, 3vw, 14px);
+    background: rgba(0,255,65,0.05);
+    border: 1px solid var(--green-dark);
+    color: var(--green-dim);
+    padding: 12px 16px;
+    border-radius: 4px;
+    cursor: pointer;
+    text-align: left;
+    transition: all 0.2s;
+    line-height: 1.5;
+  }
+
+  .option-btn:hover:not(:disabled) {
+    background: rgba(0,255,65,0.12);
+    border-color: var(--green);
+    color: var(--green);
+    box-shadow: 0 0 12px rgba(0,255,65,0.2);
+    transform: translateX(4px);
+  }
+
+  .option-btn.correct {
+    background: rgba(0,255,65,0.2);
+    border-color: var(--green);
+    color: var(--green);
+    box-shadow: 0 0 15px var(--green-glow);
+  }
+
+  .option-btn.wrong {
+    background: rgba(255,34,34,0.15);
+    border-color: var(--red);
+    color: var(--red);
+    animation: shake 0.4s ease;
+  }
+
+  .option-btn:disabled { cursor: not-allowed; }
+
+  @keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    20% { transform: translateX(-6px); }
+    40% { transform: translateX(6px); }
+    60% { transform: translateX(-4px); }
+    80% { transform: translateX(4px); }
+  }
+
+  .feedback {
+    margin-top: 14px;
+    font-family: 'Press Start 2P', monospace;
+    font-size: 9px;
+    padding: 10px 14px;
+    border-radius: 3px;
+    display: none;
+    line-height: 1.8;
+  }
+
+  .feedback.show { display: block; }
+  .feedback.ok { color: var(--green); border: 1px solid var(--green); background: rgba(0,255,65,0.08); }
+  .feedback.err { color: var(--red); border: 1px solid var(--red); background: rgba(255,34,34,0.08); }
+
+  /* Victory */
+  .victory-screen {
+    display: none;
+    text-align: center;
+    padding: 30px 20px;
+    animation: fadeIn 1s ease;
+  }
+
+  .victory-screen.show { display: block; }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .victory-title {
+    font-family: 'Press Start 2P', monospace;
+    font-size: clamp(12px, 4vw, 20px);
+    color: var(--green);
+    text-shadow: 0 0 30px var(--green-glow), 0 0 60px var(--green-glow);
+    margin-bottom: 20px;
+    line-height: 1.8;
+    animation: victory-glow 2s ease-in-out infinite;
+  }
+
+  @keyframes victory-glow {
+    0%, 100% { text-shadow: 0 0 20px var(--green-glow); }
+    50% { text-shadow: 0 0 50px var(--green-glow), 0 0 100px rgba(0,255,65,0.3); }
+  }
+
+  .victory-msg {
+    font-size: clamp(12px, 3.5vw, 15px);
+    color: var(--green-dim);
+    line-height: 2;
+    margin-bottom: 30px;
+  }
+
+  .secret-link-wrap {
+    background: rgba(0,255,65,0.08);
+    border: 2px solid var(--green);
+    border-radius: 6px;
+    padding: 24px;
+    box-shadow: 0 0 30px var(--green-glow);
+    animation: link-appear 0.8s 0.5s both;
+  }
+
+  @keyframes link-appear {
+    from { transform: scale(0.8); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
+  }
+
+  .link-label {
+    font-family: 'Press Start 2P', monospace;
+    font-size: 8px;
+    color: var(--green-dim);
+    letter-spacing: 3px;
+    margin-bottom: 16px;
+    display: block;
+  }
+
+  .secret-link {
+    display: inline-block;
+    font-family: 'Press Start 2P', monospace;
+    font-size: clamp(9px, 2.8vw, 13px);
+    background: var(--green);
+    color: #000;
+    padding: 14px 20px;
+    border-radius: 4px;
+    text-decoration: none;
+    letter-spacing: 1px;
+    line-height: 1.6;
+    transition: all 0.2s;
+    box-shadow: 0 4px 0 var(--green-dark), 0 0 20px var(--green-glow);
+  }
+
+  .secret-link:hover {
+    background: #fff;
+    box-shadow: 0 4px 0 #aaa, 0 0 40px var(--green-glow);
+    transform: translateY(-2px);
+  }
+
+  .secret-link:active {
+    transform: translateY(2px);
+    box-shadow: 0 1px 0 var(--green-dark);
+  }
+
+  /* Status bar */
+  .status-bar {
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    background: rgba(0,10,0,0.95);
+    border-top: 1px solid var(--green-dark);
+    padding: 8px 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 10px;
+    color: var(--green-dim);
+    z-index: 100;
+    backdrop-filter: blur(4px);
+  }
+
+  .status-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--green);
+    display: inline-block;
+    margin-right: 6px;
+    animation: blink-dot 1s steps(1) infinite;
+  }
+
+  .status-dot.red { background: var(--red); }
+  .status-dot.off { animation: none; background: #333; }
+
+  @keyframes blink-dot {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0; }
+  }
+
+  /* Glitch on title */
+  @keyframes glitch {
+    0%, 90%, 100% { clip-path: none; transform: none; }
+    92% { clip-path: inset(20% 0 60% 0); transform: translateX(-4px); }
+    94% { clip-path: inset(60% 0 20% 0); transform: translateX(4px); }
+    96% { clip-path: none; transform: none; }
+  }
+
+  .header-title { animation: flicker 8s infinite, glitch 12s infinite; }
+
+  /* Mobile tweaks */
+  @media (max-width: 400px) {
+    .briefing { padding: 14px; }
+    .enigma-section { padding: 18px 14px; }
+    .bomb-body { padding: 18px 14px 14px; }
+  }
+
+  /* Explosion animation */
+  .explosion {
+    display: none;
+    text-align: center;
+    font-size: 60px;
+    animation: explode 0.5s ease;
+  }
+
+  @keyframes explode {
+    0% { transform: scale(0); opacity: 0; }
+    50% { transform: scale(1.5); opacity: 1; }
+    100% { transform: scale(1); opacity: 1; }
+  }
+</style>
+</head>
+<body>
+
+<div class="container">
+
+  <!-- HEADER -->
+  <div class="header">
+    <div class="header-top">[ TRANSMISSION CHIFFRÉE ]</div>
+    <div class="header-title">AGENT DUMEZ<br>MISSION : OMEGA-7</div>
+    <div class="header-sub">NIVEAU DE MENACE : CRITIQUE</div>
+  </div>
+
+  <!-- BRIEFING -->
+  <div class="briefing">
+    <p>Attention <span class="agent-name">AGENT DUMEZ</span>.</p>
+    <p>Une bombe a été placée dans un lieu stratégique. Vous avez été sélectionné comme seul agent capable de la désamorcer.</p>
+    <p>La bombe est sécurisée par <strong style="color:var(--green)">3 verrous cryptographiques</strong>. Résolvez chaque énigme pour couper le fil correspondant.</p>
+    <p>Toute erreur est permise — mais la montre tourne, agent. Bonne chance.</p>
+  </div>
+
+  <!-- BOMB DISPLAY -->
+  <div class="bomb-container">
+    <div class="bomb-wrap">
+      <div class="bomb-body">
+
+        <div class="timer-display">
+          <span class="timer-label">⚠ DÉTONATION DANS ⚠</span>
+          <div class="timer-digits" id="timer">13:37</div>
+        </div>
+
+        <div class="wires-section">
+          <div class="wire-label">— COUPER LE FIL —</div>
+          <div class="wires">
+
+            <div class="wire-row" id="wire1">
+              <div class="wire-track"></div>
+              <button class="wire-btn" id="btn1" disabled onclick="cutWire(1)">FIL 1</button>
+            </div>
+
+            <div class="wire-row" id="wire2">
+              <div class="wire-track"></div>
+              <button class="wire-btn" id="btn2" disabled onclick="cutWire(2)">FIL 2</button>
+            </div>
+
+            <div class="wire-row" id="wire3">
+              <div class="wire-track"></div>
+              <button class="wire-btn" id="btn3" disabled onclick="cutWire(3)">FIL 3</button>
+            </div>
+
+          </div>
+        </div>
+
+        <div class="progress-dots">
+          <div class="dot" id="dot1"></div>
+          <div class="dot" id="dot2"></div>
+          <div class="dot" id="dot3"></div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- ENIGMA 1 -->
+  <div class="enigma-section visible" id="enigma1">
+    <div class="enigma-num">// VERROU 01 — FIL ROUGE</div>
+    <div class="enigma-text">
+      Je suis toujours devant vous, mais ne peut jamais être vu. Je n'ai ni couleur, ni odeur, ni son. Les nations se battent pour moi, les sages m'étudient, mais personne ne peut me tenir dans sa main.<br><br>
+      <strong style="color:var(--yellow)">Qu'est-ce que je suis ?</strong>
+    </div>
+    <div class="enigma-options">
+      <button class="option-btn" onclick="answer(1, false, this)">A) L'air</button>
+      <button class="option-btn" onclick="answer(1, true, this)">B) L'avenir</button>
+      <button class="option-btn" onclick="answer(1, false, this)">C) L'espace</button>
+      <button class="option-btn" onclick="answer(1, false, this)">D) Le silence</button>
+    </div>
+    <div class="feedback" id="fb1"></div>
+  </div>
+
+  <!-- ENIGMA 2 -->
+  <div class="enigma-section" id="enigma2">
+    <div class="enigma-num">// VERROU 02 — FIL BLEU</div>
+    <div class="enigma-text">
+      Un agent entre dans une pièce avec 3 lampes allumées et 2 lampes éteintes. Il sort, revient et trouve 4 lampes allumées. Personne d'autre n'est entré.<br><br>
+      <strong style="color:var(--yellow)">Comment est-ce possible ?</strong>
+    </div>
+    <div class="enigma-options">
+      <button class="option-btn" onclick="answer(2, false, this)">A) Une lampe s'est allumée automatiquement</button>
+      <button class="option-btn" onclick="answer(2, false, this)">B) L'agent a mal compté au départ</button>
+      <button class="option-btn" onclick="answer(2, true, this)">C) L'agent a allumé une lampe en sortant</button>
+      <button class="option-btn" onclick="answer(2, false, this)">D) C'est impossible</button>
+    </div>
+    <div class="feedback" id="fb2"></div>
+  </div>
+
+  <!-- ENIGMA 3 -->
+  <div class="enigma-section" id="enigma3">
+    <div class="enigma-num">// VERROU 03 — FIL JAUNE</div>
+    <div class="enigma-text">
+      DUMEZ a intercepté ce message codé :<br><br>
+      <span style="color:var(--green);font-size:1.2em;letter-spacing:3px">8 - 5 - 18 - 15</span><br><br>
+      Chaque nombre correspond à une lettre de l'alphabet (A=1, B=2...).<br><br>
+      <strong style="color:var(--yellow)">Quel mot cela forme-t-il ?</strong>
+    </div>
+    <div class="enigma-options">
+      <button class="option-btn" onclick="answer(3, false, this)">A) CODE</button>
+      <button class="option-btn" onclick="answer(3, true, this)">B) HERO</button>
+      <button class="option-btn" onclick="answer(3, false, this)">C) DUME</button>
+      <button class="option-btn" onclick="answer(3, false, this)">D) FIRE</button>
+    </div>
+    <div class="feedback" id="fb3"></div>
+  </div>
+
+  <!-- VICTORY -->
+  <div class="victory-screen" id="victory">
+    <div class="victory-title">✓ BOMBE<br>DÉSAMORCÉE</div>
+    <div class="victory-msg">
+      Mission accomplie, Agent Dumez.<br>
+      Vous avez prouvé votre valeur.<br>
+      La bombe s'ouvre... un message vous attend.
+    </div>
+    <div class="secret-link-wrap">
+      <span class="link-label">[ ACCÈS FICHIER SECRET ]</span>
+      <a class="secret-link" href="https://drive.google.com/drive/folders/13wnFNN5fmifYmTpgUHBF_Nl2pEl8dTX9?usp=share_link" target="_blank">
+        ► OUVRIR LE DOSSIER
+      </a>
+    </div>
+  </div>
+
+</div>
+
+<!-- STATUS BAR -->
+<div class="status-bar">
+  <div><span class="status-dot" id="status-dot"></span><span id="status-text">SYSTÈME ACTIF</span></div>
+  <div id="progress-text">VERROU 1/3</div>
+</div>
+
+<script>
+  let solved = [false, false, false];
+  let timerSecs = 13 * 60 + 37;
+  let timerInterval;
+  let currentEnigma = 1;
+
+  // Start timer
+  timerInterval = setInterval(() => {
+    if (timerSecs > 0) {
+      timerSecs--;
+      const m = String(Math.floor(timerSecs / 60)).padStart(2, '0');
+      const s = String(timerSecs % 60).padStart(2, '0');
+      document.getElementById('timer').textContent = m + ':' + s;
+    }
+  }, 1000);
+
+  function answer(enigmaNum, correct, btn) {
+    const options = btn.parentElement.querySelectorAll('.option-btn');
+    const feedback = document.getElementById('fb' + enigmaNum);
+
+    options.forEach(b => b.disabled = true);
+
+    if (correct) {
+      btn.classList.add('correct');
+      feedback.className = 'feedback show ok';
+      feedback.textContent = '✓ CORRECT — Verrou débloqué. Coupez le fil.';
+
+      // Enable wire button
+      const wireBtn = document.getElementById('btn' + enigmaNum);
+      wireBtn.disabled = false;
+      wireBtn.classList.add('ready');
+
+      document.getElementById('status-text').textContent = 'VERROU ' + enigmaNum + ' DÉBLOQUÉ';
+    } else {
+      btn.classList.add('wrong');
+      feedback.className = 'feedback show err';
+      feedback.textContent = '✗ ERREUR — Tentez encore. Réactivation...';
+
+      setTimeout(() => {
+        options.forEach(b => {
+          b.disabled = false;
+          b.classList.remove('wrong', 'correct');
+        });
+        feedback.className = 'feedback';
+      }, 1400);
+    }
+  }
+
+  function cutWire(num) {
+    const btn = document.getElementById('btn' + num);
+    const wire = document.getElementById('wire' + num);
+    const track = wire.querySelector('.wire-track');
+
+    btn.disabled = true;
+    btn.classList.remove('ready');
+    btn.classList.add('cut-done');
+    btn.textContent = 'COUPÉ ✓';
+    track.classList.add('cut');
+
+    document.getElementById('dot' + num).classList.add('active');
+
+    solved[num - 1] = true;
+
+    // Show next enigma
+    if (num < 3) {
+      setTimeout(() => {
+        const next = document.getElementById('enigma' + (num + 1));
+        next.classList.add('visible');
+        next.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        document.getElementById('progress-text').textContent = 'VERROU ' + (num + 1) + '/3';
+        document.getElementById('status-text').textContent = 'FIL ' + num + ' NEUTRALISÉ';
+      }, 600);
+    }
+
+    // All solved
+    if (solved.every(Boolean)) {
+      setTimeout(() => triggerVictory(), 800);
+    }
+  }
+
+  function triggerVictory() {
+    clearInterval(timerInterval);
+
+    // Stop timer
+    const timerEl = document.getElementById('timer');
+    timerEl.textContent = '00:00';
+    timerEl.classList.add('stopped');
+
+    document.getElementById('status-dot').classList.remove();
+    document.getElementById('status-dot').className = 'status-dot off';
+    document.getElementById('status-text').textContent = 'BOMBE NEUTRALISÉE';
+    document.getElementById('progress-text').textContent = '3/3 ✓';
+
+    // Show victory
+    setTimeout(() => {
+      const v = document.getElementById('victory');
+      v.classList.add('show');
+      v.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+      // Hide enigmas
+      ['enigma1','enigma2','enigma3'].forEach(id => {
+        document.getElementById(id).style.opacity = '0.3';
+      });
+    }, 600);
+  }
+</script>
+</body>
+</html>
